@@ -4,7 +4,8 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node main.js"
   },
   "repository": {
     "type": "git",
@@ -15,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/Qayyax/web_crawler/issues"
   },
-  "homepage": "https://github.com/Qayyax/web_crawler#readme"
+  "homepage": "https://github.com/Qayyax/web_crawler#readme",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
 }
