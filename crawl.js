@@ -29,29 +29,61 @@ function getURLsFromHTML(htmlBody, baseURL) {
     return urls
 }
 
-async function crawlPage(currentURL) {
-    console.log(`crawling ${currentURL}`)
-
+async function fetchHTML(url) {
     let response
     try {
-       response = await fetch(currentURL)
+       response = await fetch(url)
     } catch (err) {
-        console.log(`Got network error: ${err.message}`)
+        throw new Error(`Got network error: ${err.message}`)
     }
 
     if (response.status >= 400) {
-        console.log(`Got HTTP error: ${response.status} ${response.statusText}`)
-        return
+        throw new Error(`Got HTTP error: ${response.status} ${response.statusText}`)
     }
 
     const contentType = response.headers.get('content-type')
     if (!contentType || !contentType.includes('text/html')) {
-        console.log(`Got non-HTML response: ${contentType}`)
-        return
+        throw new Error(`Got non-HTML response: ${contentType}`)
     }
 
-    const data = await response.text()
-    console.log(data)
+    return response.text()
+}
+
+async function crawlPage(baseURL, currentURL=baseURL, pages={}) {
+
+    // Checked that currentURL is on the baseURL host 
+    const currentURLObj = new URL(currentURL)
+    const baseURLObj = new URL(baseURL)
+    if (currentURLObj.hostname !== baseURLObj.hostname) {
+        return pages
+    }
+
+    const normalizeCurrent = normalizeURL(currentURL)
+
+    // if we have visited the page before
+    // increment the page count
+    if (pages[normalizeCurrent] > 0) {
+        pages[normalizeCurrent]++
+        return pages
+    } 
+    pages[normalizeCurrent] = 1
+
+    console.log(`crawling ${currentURL}`)
+
+    let html = ''
+    try {
+        html = await fetchHTML(currentURL)
+    } catch (err) {
+        console.log(err.message)
+        return pages
+    }
+
+    const nextURLs = getURLsFromHTML(html, baseURL)
+    for (const nextURL of nextURLs) {
+        pages = await crawlPage(baseURL, nextURL, pages)
+    }
+
+    return pages
 
 }
 
